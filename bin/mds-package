@@ -64,8 +64,8 @@ function usage()
 		    Uninstalls the named MDS package. Any installer arguments given
 		    are passed through to the MDS package's uninstall action.
 		
-		  verify <name>
-		    Run the verify script for the named MDS package.
+		  verify <name> [name2 name3 ...]
+		    Run the verify script for the named MDS package(s).
 		
 		EOF
 }
@@ -96,9 +96,8 @@ function uninstall()
 
 function verify()
 {
-  # TODO: ensure the package is tagged 'MDS Package' before proceeding
-  name="$1"; shift
-  rpm -V "$name"
+  # TODO: ensure the packages are tagged 'MDS Package' before proceeding
+  rpm -V "$@"
 }
 
 function installer() {
