@@ -26,3 +26,8 @@ installer's uninstall action, and then it will remove the MDS installer RPM.
 To verify the health of installed software, the `mds-package` utility will
 invoke RPM's verify action for the package. This will in turn invoke the MDS
 installer's verify action.
+
+The `mds-package` utility wrapper is required, instead of using RPM's %post and
+%preun script actions, because some vendor installers may make use of the RPM
+system too. RPM %post and %preun actions hold the RPM transaction lock, which
+would prevent some vendor installers from completing during those actions.
