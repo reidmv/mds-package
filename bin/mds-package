@@ -79,6 +79,7 @@ function list()
 function install()
 {
   # TODO: intelligently use $g_install_mode
+  # TODO: ensure the package is tagged 'MDS Package' before proceeding
   src="$1"; shift
   name=$(rpm -qp "$src" --queryformat '%{NAME}')
   rpm -i "$src"
@@ -87,6 +88,7 @@ function install()
 
 function uninstall()
 {
+  # TODO: ensure the package is tagged 'MDS Package' before proceeding
   name="$1"; shift
   "$(installer $name)" uninstall "$@" \
   && rpm -e "$name"
@@ -94,6 +96,7 @@ function uninstall()
 
 function verify()
 {
+  # TODO: ensure the package is tagged 'MDS Package' before proceeding
   name="$1"; shift
   rpm -V "$name"
 }
