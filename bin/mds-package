@@ -82,13 +82,13 @@ function install()
   src="$1"; shift
   name=$(rpm -qp "$src" --queryformat '%{NAME}')
   rpm -i "$src"
-  "$(installer $name)" -i "$@"
+  "$(installer $name)" install "$@"
 }
 
 function uninstall()
 {
   name="$1"; shift
-  "$(installer $name)" -u "$@" \
+  "$(installer $name)" uninstall "$@" \
   && rpm -e "$name"
 }
 

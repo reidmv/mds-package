@@ -2,32 +2,31 @@
 
 function main()
 {
-  while getopts "iuv" opt; do
-    case $opt in
-      i)
-        install
-        ;;
-      u)
-        uninstall
-        ;;
-      v)
-        verify
-        ;;
-    esac
-  done
+  case "$1" in
+    install)
+      action=install
+      ;;
+    uninstall)
+      action=uninstall
+      ;;
+    verify)
+      action=verify
+      ;;
+    *)
+      echo "Must specify install, uninstall, or verify"
+      exit 1
+      ;;
+  esac
 
-  shift "$((OPTIND - 1))"
-
-  if [ "$OPTIND" -ne "2" ]; then
-    echo "Must specify -i, -r, or -v"
-    exit 1
-  fi
+  shift
+  "$action" "$@"
 }
 
 function install()
 {
   set -e
-  echo "1.0.0" > /tmp/xampl
+  echo "xampl" > /tmp/xampl
+  echo "$@" >> /tmp/xampl
   exit 0
 }
 
@@ -35,12 +34,13 @@ function uninstall()
 {
   set -e
   rm /tmp/xampl
+  echo "$@" > /tmp/xampl-uninstall.log
   exit 0
 }
 
 function verify()
 {
-  if [ "$(cat /tmp/xampl)" = "1.0.0" ]; then
+  if egrep '^xampl$' /tmp/xampl 1>/dev/null 2>&1; then
     exit 0
   else
     exit 1

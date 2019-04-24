@@ -1,5 +1,18 @@
 #!/bin/sh
 
+if [ "$#" -ne 3 ]; then
+  cat <<-EOF
+		
+		Usage: $(basename $0) <name> <version> <path-to-script>
+		
+		  Given a package name, a version, and a path to a script supporting install
+		  (-i), uninstall (-u), and verify (-v), create an RPM package for use with
+		  the mds-package utility.
+		
+		EOF
+  exit 1
+fi
+
 name=$1
 version=$2
 script=$3
@@ -8,11 +21,20 @@ prefix="/opt/mds-package/${name}/${version}"
 installer_name="${name}-${version}-installer"
 
 verify="$(mktemp)"
+beforeremove="$(mktemp)"
 builddir="$(mktemp -d)"
 
 cp "$script" "${builddir}/${installer_name}"
+
+# PRM verify should call the installer's verify action
 cat <<-EOF > "${verify}"
-"${prefix}/${script}" -v
+"${prefix}/${installer_name}" verify
+EOF
+
+# Before removing the installer's RPM, the product should be uninstalled. This
+# should be indicated by the product's verify action failing.
+cat <<-EOF > "${beforeremove}"
+"${prefix}/${installer_name}" verify && exit 1 || exit 0
 EOF
 
 fpm \
@@ -22,6 +44,7 @@ fpm \
   -t rpm \
   --vendor 'MDS Package' \
   --rpm-verifyscript "$verify" \
+  --before-remove "$beforeremove" \
   --url "${prefix}/${installer_name}" \
   -C "$builddir" \
   --prefix "$prefix"
