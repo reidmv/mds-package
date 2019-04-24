@@ -1,0 +1,50 @@
+#!/bin/sh
+
+function main()
+{
+  while getopts "iuv" opt; do
+    case $opt in
+      i)
+        install
+        ;;
+      u)
+        uninstall
+        ;;
+      v)
+        verify
+        ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+
+  if [ "$OPTIND" -ne "2" ]; then
+    echo "Must specify -i, -r, or -v"
+    exit 1
+  fi
+}
+
+function install()
+{
+  set -e
+  echo "1.0.0" > /tmp/xampl
+  exit 0
+}
+
+function uninstall()
+{
+  set -e
+  rm /tmp/xampl
+  exit 0
+}
+
+function verify()
+{
+  if [ "$(cat /tmp/xampl)" = "1.0.0" ]; then
+    exit 0
+  else
+    exit 1
+  fi
+}
+
+main "$@"

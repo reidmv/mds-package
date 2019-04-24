@@ -1,0 +1,32 @@
+#!/bin/sh
+
+name=$1
+version=$2
+script=$3
+
+prefix="/opt/mds-package/${name}/${version}"
+installer_name="${name}-${version}-installer"
+
+verify="$(mktemp)"
+builddir="$(mktemp -d)"
+
+cp "$script" "${builddir}/${installer_name}"
+cat <<-EOF > "${verify}"
+"${prefix}/${script}" -v
+EOF
+
+fpm \
+  -n "$name" \
+  -v "$version" \
+  -s dir \
+  -t rpm \
+  --vendor 'MDS Package' \
+  --rpm-verifyscript "$verify" \
+  --url "${prefix}/${installer_name}" \
+  -C "$builddir" \
+  --prefix "$prefix"
+
+
+# Cleanup
+rm "$verify" "${builddir}/${installer_name}"
+rmdir "$builddir"

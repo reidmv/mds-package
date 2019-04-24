@@ -1,0 +1,105 @@
+#!/bin/sh
+
+function main()
+{
+  while getopts ":ruh" opt; do
+    case $opt in
+      r)
+        g_install_mode=reinstall
+        ;;
+      u)
+        g_install_mode=upgrade
+        ;;
+      h)
+        usage; exit 0
+        ;;
+      *)
+        usage; exit 1
+        ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+
+  case "$1" in
+    list)
+      action=list
+      ;;
+    install)
+      action=install
+      ;;
+    uninstall)
+      action=uninstall
+      ;;
+    verify)
+      action=verify
+      ;;
+    *)
+      usage; exit 1
+      ;;
+  esac
+
+  shift
+  "$action" "$@"
+}
+
+function usage()
+{
+  cat <<-EOF
+		
+		Usage: $(basename $0) [-ur] <subcommand>
+		
+		Available subcommands:
+		
+		  list [name1 name2 ...]
+		    List installed MDS packages. If no further arguments are given,
+		    lists all software installed by an MDS package.
+
+		  install <source> [installer-arguments ...]
+		    Install the MDS package RPM from the given source location. The
+		    source can be a URL or a file path. Any installer arguments
+		    given are passed through to the MDS package's install action.
+		
+		  uninstall <name> [uninstaller-arguments ...]
+		    Uninstalls the named MDS package. Any installer arguments given
+		    are passed through to the MDS package's uninstall action.
+		
+		  verify <name>
+		    Run the verify script for the named MDS package.
+		
+		EOF
+}
+
+function list()
+{
+  rpm -qa --queryformat '%{NAME}\t%{VERSION}\t%{URL}\t%{VENDOR}\n' "$@" \
+  | awk -F '\t' '$4 == "MDS Package" { print $1, $2, $3 }'
+}
+
+function install()
+{
+  # TODO: intelligently use $g_install_mode
+  src="$1"; shift
+  name=$(rpm -qp "$src" --queryformat '%{NAME}')
+  rpm -i "$src"
+  "$(installer $name)" -i "$@"
+}
+
+function uninstall()
+{
+  name="$1"; shift
+  "$(installer $name)" -u "$@" \
+  && rpm -e "$name"
+}
+
+function verify()
+{
+  name="$1"; shift
+  rpm -V "$name"
+}
+
+function installer() {
+  rpm -q "$1" --queryformat '%{URL}'
+}
+
+main "$@"
